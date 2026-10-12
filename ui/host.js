@@ -199,6 +199,45 @@ export default async function mount({ pluginId, projectId, setTheme, signal }) {
   });
   syncTheme();
 
+  // The upstream drawer covers the viewport; Modera reserves a native titlebar.
+  const titlebarOffset = "--modera-we-titlebar-bottom";
+  const previousOffset = document.body.style.getPropertyValue(titlebarOffset);
+  const previousPriority =
+    document.body.style.getPropertyPriority(titlebarOffset);
+  let titlebar;
+  const syncTitlebar = () => {
+    const next = document.querySelector(".window-titlebar");
+    if (next !== titlebar) {
+      if (titlebar) titlebarObserver.unobserve(titlebar);
+      titlebar = next;
+      if (titlebar) titlebarObserver.observe(titlebar);
+    }
+    document.body.style.setProperty(
+      titlebarOffset,
+      `${Math.max(0, titlebar?.getBoundingClientRect().bottom ?? 0)}px`,
+    );
+  };
+  const titlebarObserver = new ResizeObserver(syncTitlebar);
+  const titlebarTreeObserver = new MutationObserver(syncTitlebar);
+  titlebarTreeObserver.observe(document.getElementById("root"), {
+    childList: true,
+    subtree: true,
+  });
+  window.addEventListener("resize", syncTitlebar);
+  syncTitlebar();
+  cleanups.push(() => {
+    titlebarObserver.disconnect();
+    titlebarTreeObserver.disconnect();
+    window.removeEventListener("resize", syncTitlebar);
+    if (previousOffset)
+      document.body.style.setProperty(
+        titlebarOffset,
+        previousOffset,
+        previousPriority,
+      );
+    else document.body.style.removeProperty(titlebarOffset);
+  });
+
   // Supply the semantic anchors the retained avatar/parallax modules expect.
   const annotated = new Map();
   const anchors = [

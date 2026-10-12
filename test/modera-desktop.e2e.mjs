@@ -239,12 +239,87 @@ try {
       { timeout: 30000 },
     )
     .toBe(1);
+  const verifyGlassAndDrawer = async (name) => {
+    const surfaces = await page.evaluate(() =>
+      [
+        ".app-sidebar",
+        ".app-sidebar .project-picker",
+        ".empty-state",
+        ".composer",
+      ].map((selector) => {
+        const node = document.querySelector(selector);
+        return [selector, node && getComputedStyle(node).backgroundColor];
+      }),
+    );
+    for (const [selector, color] of surfaces) {
+      assert.ok(color, `${selector} must exist`);
+      assert.match(
+        color,
+        /(?:rgba|color\()/,
+        `${selector} must use transparency: ${color}`,
+      );
+    }
+    await page.locator(".we-rope").focus();
+    await page.locator(".we-rope").press("Enter");
+    await expect(page.locator(".we-repo-panel--open")).toBeVisible();
+    const verifyBounds = async () => {
+      const bounds = await page.evaluate(() => ({
+        bar: document.querySelector(".window-titlebar").getBoundingClientRect()
+          .bottom,
+        panel: document.querySelector(".we-repo-panel").getBoundingClientRect()
+          .top,
+        bottom: document.querySelector(".we-repo-panel").getBoundingClientRect()
+          .bottom,
+        viewport: innerHeight,
+      }));
+      assert.ok(
+        Math.abs(bounds.bar - bounds.panel) < 1,
+        JSON.stringify(bounds),
+      );
+      assert.ok(
+        Math.abs(bounds.bottom - bounds.viewport) < 1,
+        JSON.stringify(bounds),
+      );
+    };
+    await expect
+      .poll(() =>
+        page
+          .locator(".we-repo-panel")
+          .evaluate((node) => Math.round(node.getBoundingClientRect().right)),
+      )
+      .toBe(await page.evaluate(() => innerWidth));
+    await verifyBounds();
+    await page.screenshot({
+      path: join(screenshots, `glass-drawer-${name}.png`),
+    });
+    await page.locator(".window-titlebar").evaluate((node) => {
+      node.style.height = "56px";
+      node.style.minHeight = "56px";
+    });
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          parseFloat(
+            document.body.style.getPropertyValue("--modera-we-titlebar-bottom"),
+          ),
+        ),
+      )
+      .toBe(56);
+    await verifyBounds();
+    await page
+      .locator(".we-repo-panel__head")
+      .getByRole("button", { name: "收起" })
+      .click();
+    await expect(page.locator(".we-repo-panel--open")).toHaveCount(0);
+  };
+  await verifyGlassAndDrawer("light");
   await page.screenshot({ path: join(screenshots, "live-web.png") });
   await page.getByRole("button", { name: "设置", exact: true }).click();
   await page.getByRole("button", { name: "主题设置", exact: true }).click();
   await page.getByRole("tab", { name: "深色", exact: true }).click();
   await expect(page.locator("body")).toHaveAttribute("data-ds-dark-theme", "");
   await page.getByRole("button", { name: "主页", exact: true }).click();
+  await verifyGlassAndDrawer("dark");
   await page.screenshot({ path: join(screenshots, "live-web-dark.png") });
   await page.getByRole("button", { name: "壁纸引擎", exact: true }).click();
   await page.getByRole("button", { name: "选择壁纸", exact: true }).click();

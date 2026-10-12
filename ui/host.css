@@ -16,10 +16,16 @@ body[data-modera-wallpaper] {
   --modera-we-tint: var(--we-surface-tint-light, #f2f4f8);
   --modera-we-pane: color-mix(
     in srgb,
-    var(--modera-we-tint) calc(var(--we-glass-alpha, 0.7) * 100%),
+    var(--modera-we-tint) calc(var(--we-glass-alpha, 0.7) * 24%),
     transparent
   );
   --modera-we-text-pane: color-mix(
+    in srgb,
+    var(--modera-we-tint)
+      calc(var(--we-input-alpha, var(--we-glass-alpha, 0.7)) * 38%),
+    transparent
+  );
+  --modera-we-popup-pane: color-mix(
     in srgb,
     var(--modera-we-tint) 82%,
     transparent
@@ -79,11 +85,11 @@ body[data-modera-wallpaper][data-we-glass-page]
     saturate(var(--we-saturate, 1.3));
 }
 body[data-modera-wallpaper][data-we-wallpaper]
-  :is(.sidebar, .mu-chat-app-sidebar) {
+  :is(.sidebar, .app-sidebar, .mu-chat-app-sidebar) {
   background: transparent !important;
 }
 body[data-modera-wallpaper][data-we-left-sidebar]
-  :is(.sidebar, .mu-chat-app-sidebar) {
+  :is(.sidebar, .app-sidebar, .mu-chat-app-sidebar) {
   background: var(--modera-we-pane) !important;
   border-color: var(--dsw-alias-border-l1) !important;
   backdrop-filter: blur(var(--we-left-sidebar-blur, var(--we-blur, 20px)));
@@ -104,7 +110,20 @@ body[data-modera-wallpaper][data-we-glass-chat]
 body[data-modera-wallpaper][data-we-wallpaper] .empty-state {
   padding: 24px;
   border-radius: 18px;
-  background: var(--modera-we-text-pane);
+  background: transparent !important;
+  box-shadow: none;
+}
+body[data-modera-wallpaper][data-we-wallpaper]
+  :is(.sidebar, .app-sidebar)
+  .project-picker {
+  background: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+}
+body[data-modera-wallpaper][data-we-glass-floaters] .we-repo-panel {
+  top: var(--modera-we-titlebar-bottom, 44px) !important;
+  height: calc(100dvh - var(--modera-we-titlebar-bottom, 44px)) !important;
+  -webkit-app-region: no-drag;
 }
 body[data-modera-wallpaper][data-we-glass-page]
   :is(.window-titlebar, .workbench-rail) {
@@ -115,6 +134,32 @@ body[data-modera-wallpaper][data-we-glass-page]
 body[data-modera-wallpaper][data-we-glass-chat]
   :is(.composer, .mu-prompt-input) {
   backdrop-filter: blur(var(--we-input-blur, var(--we-blur, 20px)));
+}
+body[data-modera-wallpaper][data-we-wallpaper]
+  :is(.mu-chat-empty-icon, .activity-bar button[aria-current]) {
+  background: var(--modera-we-text-pane) !important;
+  border-color: var(--dsw-alias-border-l1) !important;
+  box-shadow: none !important;
+  color: var(--dsw-alias-label-primary);
+  backdrop-filter: blur(var(--we-input-blur, var(--we-blur, 20px)));
+}
+body[data-modera-wallpaper][data-we-glass-page] .mu-panel-dock-header {
+  background: var(--modera-we-pane) !important;
+  background-image: none !important;
+  backdrop-filter: blur(var(--we-blur, 20px));
+}
+body[data-modera-wallpaper][data-we-glass-page]
+  .panel-launcher
+  :is(.mu-action-tile, .mu-action-tile-icon) {
+  background: var(--modera-we-text-pane) !important;
+  border-color: var(--dsw-alias-border-l1) !important;
+  backdrop-filter: blur(var(--we-input-blur, var(--we-blur, 20px)));
+}
+body[data-modera-wallpaper][data-we-glass-page]
+  .panel-launcher
+  .mu-action-tile:hover {
+  background: var(--modera-we-pane) !important;
+  border-color: var(--we-accent, var(--mu-accent)) !important;
 }
 body[data-modera-wallpaper]
   .desktop-appearance
@@ -155,8 +200,8 @@ body[data-modera-we-fonts] .mu-markdown :not(pre) > code {
   font: var(--dsw-font-markdown-code);
 }
 body[data-modera-wallpaper][data-we-glass-floaters]
-  :is(.mu-menu-panel, .mu-popover, .mu-dialog, .project-picker) {
-  background: var(--modera-we-text-pane) !important;
+  :is(.mu-menu-panel, .mu-popover, .mu-dialog) {
+  background: var(--modera-we-popup-pane) !important;
   backdrop-filter: blur(var(--we-blur, 20px));
   border-color: var(--dsw-alias-border-l1) !important;
 }
@@ -181,7 +226,7 @@ body[data-modera-wallpaper][data-we-glass-floaters]
   border: 1px solid var(--dsw-alias-border-l1, #8490a0);
   border-radius: 20px;
   color: var(--dsw-alias-label-primary);
-  background: var(--modera-we-text-pane);
+  background: var(--modera-we-popup-pane);
   backdrop-filter: blur(var(--we-settings-window-blur, 24px));
   box-shadow: 0 24px 80px rgb(0 0 0 / 25%);
   overflow: auto;
@@ -220,6 +265,7 @@ body[data-modera-wallpaper][data-we-glass-floaters]
   body[data-modera-wallpaper] {
     --modera-we-pane: var(--modera-we-tint);
     --modera-we-text-pane: var(--modera-we-tint);
+    --modera-we-popup-pane: var(--modera-we-tint);
   }
 }
 @media (prefers-reduced-motion: reduce) {
