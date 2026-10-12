@@ -135,6 +135,47 @@ body[data-modera-wallpaper][data-we-glass-chat]
   :is(.composer, .mu-prompt-input) {
   backdrop-filter: blur(var(--we-input-blur, var(--we-blur, 20px)));
 }
+body[data-modera-wallpaper][data-we-glass-chat]
+  .message-row.user[data-variant="bubble"]
+  .message-content {
+  background: color-mix(
+    in srgb,
+    var(--modera-we-tint) 48%,
+    transparent
+  ) !important;
+  border: 1px solid var(--dsw-alias-border-l1);
+  backdrop-filter: blur(var(--we-input-blur, var(--we-blur, 20px)));
+}
+body[data-modera-wallpaper][data-we-wallpaper][data-ds-dark-theme]
+  :is(
+    .thinking-toggle,
+    .thinking-meta,
+    .tool-node > summary,
+    .tool-node-title,
+    .tool-node-description,
+    .tool-detail-heading
+  ) {
+  color: #dce4ef !important;
+}
+body[data-modera-wallpaper][data-we-glass-chat][data-ds-dark-theme]
+  :is(.thinking-content, .tool-node .tool-node-detail) {
+  --mu-ink: #edf2f8;
+  --mu-muted: #c2ccda;
+  --text-secondary: #d2dce8;
+  --text-muted: #c2ccda;
+  color: #edf2f8 !important;
+  background: rgb(24 29 38 / 76%) !important;
+  border: 1px solid rgb(221 232 248 / 24%) !important;
+  border-radius: 14px;
+  padding: 14px 18px;
+  backdrop-filter: blur(16px);
+}
+body[data-modera-wallpaper][data-we-glass-chat][data-ds-dark-theme]
+  .tool-node-detail
+  :is(pre, .tool-detail-heading, .mu-agent-console) {
+  color: #edf2f8;
+  background: rgb(255 255 255 / 5%);
+}
 body[data-modera-wallpaper][data-we-wallpaper]
   :is(.mu-chat-empty-icon, .activity-bar button[aria-current]) {
   background: var(--modera-we-text-pane) !important;

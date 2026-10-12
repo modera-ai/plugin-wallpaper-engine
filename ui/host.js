@@ -244,8 +244,6 @@ export default async function mount({ pluginId, projectId, setTheme, signal }) {
     [".messages", "data-slot", "conversation.view"],
     [".sidebar", "data-slot", "sidebar"],
     [".composer", "data-composer-card", ""],
-    [".message-row.user", "data-chat-flow-kind", "user"],
-    [".message-row.assistant", "data-chat-flow-kind", "assistant-step"],
   ];
   const annotate = (scope) => {
     for (const [selector, attribute, value] of anchors) {

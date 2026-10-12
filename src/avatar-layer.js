@@ -265,7 +265,8 @@ function avatarStop() {
  * 但换来的是"任何时刻屏上的形态都等于当前设置"这条不需要额外状态机的性质。
  */
 function syncAvatarLayer() {
-  const on = selection.avatarEnabled === true;
+  // Modera has no conversation avatars; upstream presets must not add them.
+  const on = typeof moderaHost === 'undefined' && selection.avatarEnabled === true;
   const body = weBody();
   if (!on || !body || typeof MutationObserver !== 'function') {
     if (avatarActive || avatarObserver) avatarStop();
