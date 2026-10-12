@@ -1,0 +1,36 @@
+{
+  "apiVersion": 1,
+  "id": "modera.wallpaper-engine",
+  "name": "Wallpaper Engine",
+  "version": "1.3.2",
+  "description": "The original DSH Wallpaper Engine plugin adapted to Modera: local wallpapers, live scenes, liquid glass and appearance controls.",
+  "author": "elysia395 / Modera adaptation",
+  "category": "appearance",
+  "icon": "sparkles",
+  "main": "dist/index.cjs",
+  "activationScope": "global",
+  "configScope": "global",
+  "workspaceTargets": ["local", "ssh"],
+  "permissions": [
+    "host.inject",
+    "storage.read",
+    "storage.write",
+    "workspace.read",
+    "workspace.write",
+    "process.spawn",
+    "network.fetch"
+  ],
+  "extensions": ["window.overlay"],
+  "frontends": { "assets": { "root": "dist/ui", "entry": "index.html" } },
+  "hostInjection": {
+    "frontend": "assets",
+    "script": "host.js",
+    "stylesheet": "host.css"
+  },
+  "locales": {
+    "zh-CN": {
+      "name": "动态壁纸引擎",
+      "description": "在原 DSH 插件上适配：本地壁纸、实时场景、液态玻璃、字体及外观设置。"
+    }
+  }
+}

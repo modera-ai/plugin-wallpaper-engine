@@ -1,0 +1,229 @@
+/* Modera bindings for the original plugin's material and typography controls. */
+body[data-modera-wallpaper] {
+  --dsw-font-family: var(--mu-font, system-ui);
+  --modera-we-ink: #202430;
+  --modera-we-muted: #626e80;
+  --dsw-alias-label-primary: var(--modera-we-ink);
+  --dsw-alias-label-secondary: var(--modera-we-muted);
+  --dsw-alias-label-tertiary: var(--modera-we-muted);
+  --dsw-alias-label-caption: var(--modera-we-muted);
+  --dsw-alias-label-dimmed: var(--modera-we-muted);
+  --dsw-alias-label-primary-dimmed: var(--modera-we-muted);
+  --dsw-font-body: 400 14px/1.6 var(--dsw-font-family);
+  --dsw-font-body-font-size: 14px;
+  --dsw-font-body-font-weight: 400;
+  --dsw-font-body-line-height: 1.6;
+  --modera-we-tint: var(--we-surface-tint-light, #f2f4f8);
+  --modera-we-pane: color-mix(
+    in srgb,
+    var(--modera-we-tint) calc(var(--we-glass-alpha, 0.7) * 100%),
+    transparent
+  );
+  --modera-we-text-pane: color-mix(
+    in srgb,
+    var(--modera-we-tint) 82%,
+    transparent
+  );
+  font-family: var(--dsw-font-family);
+}
+body[data-modera-wallpaper][data-ds-dark-theme] {
+  --modera-we-tint: var(--we-surface-tint-dark, #171d29);
+  --modera-we-ink: #e7eaf0;
+  --modera-we-muted: #a3aab8;
+}
+body[data-modera-wallpaper][data-we-wallpaper],
+body[data-modera-wallpaper][data-we-wallpaper]
+  :is(
+    #root,
+    .desktop-appearance,
+    .shell,
+    .mu-chat-app,
+    .workspace,
+    .messages,
+    .mu-chat-app-main,
+    .content-slot
+  ) {
+  background: transparent !important;
+  background-image: none !important;
+}
+body[data-modera-wallpaper][data-we-wallpaper] {
+  isolation: isolate;
+}
+body[data-modera-wallpaper][data-we-wallpaper] .desktop-appearance::before {
+  display: none !important;
+}
+body[data-modera-wallpaper] .we-layer {
+  z-index: -2;
+}
+body[data-modera-wallpaper] .we-scrim {
+  z-index: -1;
+}
+body[data-modera-wallpaper][data-we-glass-page]
+  .desktop-appearance
+  :is(
+    .window-titlebar,
+    .mu-chat-topbar,
+    .panel-region,
+    .panel-pane,
+    .desktop-settings-ui,
+    .settings-workspace,
+    .mu-settings-workspace,
+    .settings-nav,
+    .settings-content
+  ) {
+  background: var(--modera-we-pane) !important;
+  background-image: none !important;
+  border-color: var(--dsw-alias-border-l1) !important;
+  backdrop-filter: blur(var(--we-blur, 20px)) saturate(var(--we-saturate, 1.3));
+  -webkit-backdrop-filter: blur(var(--we-blur, 20px))
+    saturate(var(--we-saturate, 1.3));
+}
+body[data-modera-wallpaper][data-we-wallpaper]
+  :is(.sidebar, .mu-chat-app-sidebar) {
+  background: transparent !important;
+}
+body[data-modera-wallpaper][data-we-left-sidebar]
+  :is(.sidebar, .mu-chat-app-sidebar) {
+  background: var(--modera-we-pane) !important;
+  border-color: var(--dsw-alias-border-l1) !important;
+  backdrop-filter: blur(var(--we-left-sidebar-blur, var(--we-blur, 20px)));
+  border-radius: var(--we-left-sidebar-radius, 0px);
+}
+body[data-modera-wallpaper][data-we-glass-chat]
+  .desktop-appearance
+  :is(
+    .composer,
+    .mu-prompt-input,
+    .message-row.user .message-content,
+    .thinking-content,
+    .tool-node-detail
+  ) {
+  background: var(--modera-we-text-pane) !important;
+  border-color: var(--dsw-alias-border-l1) !important;
+}
+body[data-modera-wallpaper][data-we-wallpaper] .empty-state {
+  padding: 24px;
+  border-radius: 18px;
+  background: var(--modera-we-text-pane);
+}
+body[data-modera-wallpaper][data-we-glass-page]
+  :is(.window-titlebar, .workbench-rail) {
+  background: var(--modera-we-text-pane) !important;
+  color: var(--dsw-alias-label-primary);
+  backdrop-filter: blur(var(--we-titlebar-blur, var(--we-blur, 20px)));
+}
+body[data-modera-wallpaper][data-we-glass-chat]
+  :is(.composer, .mu-prompt-input) {
+  backdrop-filter: blur(var(--we-input-blur, var(--we-blur, 20px)));
+}
+body[data-modera-wallpaper]
+  .desktop-appearance
+  :is(.message-content, .composer textarea, .mu-prompt-input textarea) {
+  color: var(--dsw-alias-label-primary);
+  font-family: var(--dsw-font-family);
+}
+body[data-modera-wallpaper]
+  .desktop-appearance
+  :is(.message-meta, .conversation-meta, .project-meta) {
+  color: var(--dsw-alias-label-secondary);
+}
+body[data-modera-we-fonts] .mu-markdown :is(p, li, blockquote) {
+  font: var(--dsw-font-markdown-base);
+}
+body[data-modera-we-fonts] .mu-markdown h1 {
+  font: var(--dsw-font-markdown-h1);
+}
+body[data-modera-we-fonts] .mu-markdown h2 {
+  font: var(--dsw-font-markdown-h2);
+}
+body[data-modera-we-fonts] .mu-markdown h3 {
+  font: var(--dsw-font-markdown-h3);
+}
+body[data-modera-we-fonts] .mu-markdown :is(h4, h5, h6) {
+  font: var(--dsw-font-markdown-h4);
+}
+body[data-modera-we-fonts] .mu-markdown :is(table, td) {
+  font: var(--dsw-font-markdown-table);
+}
+body[data-modera-we-fonts] .mu-markdown th {
+  font: var(--dsw-font-markdown-table-head);
+}
+body[data-modera-we-fonts] .mu-markdown pre code {
+  font: var(--dsw-font-markdown-code-block);
+}
+body[data-modera-we-fonts] .mu-markdown :not(pre) > code {
+  font: var(--dsw-font-markdown-code);
+}
+body[data-modera-wallpaper][data-we-glass-floaters]
+  :is(.mu-menu-panel, .mu-popover, .mu-dialog, .project-picker) {
+  background: var(--modera-we-text-pane) !important;
+  backdrop-filter: blur(var(--we-blur, 20px));
+  border-color: var(--dsw-alias-border-l1) !important;
+}
+.modera-we-launcher {
+  position: fixed;
+  right: 20px;
+  bottom: 18px;
+  z-index: 110;
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--dsw-alias-border-l1, #8490a0);
+  color: var(--dsw-alias-label-primary) !important;
+  background: var(--modera-we-text-pane) !important;
+  cursor: pointer;
+  font: inherit;
+}
+.modera-we-settings {
+  width: min(1080px, calc(100vw - 64px));
+  max-height: calc(100vh - 64px);
+  padding: 20px;
+  border: 1px solid var(--dsw-alias-border-l1, #8490a0);
+  border-radius: 20px;
+  color: var(--dsw-alias-label-primary);
+  background: var(--modera-we-text-pane);
+  backdrop-filter: blur(var(--we-settings-window-blur, 24px));
+  box-shadow: 0 24px 80px rgb(0 0 0 / 25%);
+  overflow: auto;
+  font-family: var(--dsw-font-family);
+}
+.modera-we-settings::backdrop {
+  background: rgb(15 20 30 / 35%);
+}
+.modera-we-close {
+  display: block;
+  margin-left: auto;
+  min-width: 64px;
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 1px solid var(--mu-line);
+  border-radius: 10px;
+  color: inherit;
+  background: var(--mu-control);
+  cursor: pointer;
+}
+.modera-we-settings-content {
+  padding-top: 12px;
+}
+.modera-we-settings-content .we-section-card {
+  max-width: none;
+}
+.modera-we-settings :is(button, input, select) {
+  font: inherit;
+}
+.modera-we-launcher:focus-visible,
+.modera-we-close:focus-visible {
+  outline: 2px solid var(--we-accent, var(--mu-accent));
+  outline-offset: 3px;
+}
+@media (prefers-reduced-transparency: reduce) {
+  body[data-modera-wallpaper] {
+    --modera-we-pane: var(--modera-we-tint);
+    --modera-we-text-pane: var(--modera-we-tint);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-modera-wallpaper] .we-rope {
+    animation: none !important;
+  }
+}
