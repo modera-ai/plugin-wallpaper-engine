@@ -40,9 +40,10 @@ export default async function mount({ pluginId, projectId, setTheme, signal }) {
     fetch: fetchHost,
     signal,
     openSettings() {
-      panelMode = "settings";
-      openPanel();
-      renderPanel();
+      closePanel();
+      window.dispatchEvent(new CustomEvent("modera:open-settings", {
+        detail: { pluginId },
+      }));
     },
     fontComponents: {
       markdown: "body[data-modera-wallpaper] .mu-markdown",
@@ -284,9 +285,10 @@ export default async function mount({ pluginId, projectId, setTheme, signal }) {
 
   let section;
   let panelRender;
-  let panelMode = "library";
   let panelTarget;
   let panelRoot;
+  let settingsTarget;
+  let settingsRoot;
   let upstream;
   const panelId = "modera.wallpaper-engine";
   const panelIsActive = () => Boolean(panelTarget?.closest(".panel-region-right:not([data-hidden])")
@@ -299,14 +301,30 @@ export default async function mount({ pluginId, projectId, setTheme, signal }) {
   }));
   const renderPanel = () => {
     if (!panelRoot) return;
-    if (panelMode === "settings" && section) {
-      panelRoot.render(React.createElement("div", { className: "modera-we-settings-content" },
-        React.createElement("button", {
-          type: "button", className: "modera-we-back",
-          onClick: () => { upstream?.moderaCloseSettings(); panelMode = "library"; renderPanel(); },
-        }, "← 壁纸库"), section()));
-    } else if (panelRender) panelRoot.render(panelRender());
+    if (panelRender) panelRoot.render(panelRender());
   };
+  const renderSettings = () => {
+    if (settingsRoot && section)
+      settingsRoot.render(React.createElement("div", { className: "modera-we-settings-content" }, section()));
+  };
+  const syncSettingsTarget = () => {
+    const next = document.querySelector('.plugin-settings-layer.active [data-plugin-settings-host="modera.wallpaper-engine"]');
+    if (next === settingsTarget) return;
+    upstream?.moderaCloseSettings();
+    settingsRoot?.unmount();
+    settingsTarget = next;
+    settingsRoot = next ? createRoot(next) : null;
+    renderSettings();
+  };
+  const settingsObserver = new MutationObserver(syncSettingsTarget);
+  settingsObserver.observe(document.getElementById("root"), { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+  syncSettingsTarget();
+  cleanups.push(() => {
+    settingsObserver.disconnect();
+    upstream?.moderaCloseSettings();
+    settingsRoot?.unmount();
+    settingsRoot = null;
+  });
   const syncPanelTarget = () => {
     const next = document.querySelector('[data-host-injection-panel="modera.wallpaper-engine"]');
     if (next === panelTarget) return;
@@ -333,7 +351,7 @@ export default async function mount({ pluginId, projectId, setTheme, signal }) {
     get(name) {
       if (name === "sidebarRightTabs") return { register: () => () => {} };
       if (name === "sidebarRight") return {
-        openTab: () => { panelMode = "library"; openPanel(); renderPanel(); },
+        openTab: () => { openPanel(); renderPanel(); },
         isExpanded: panelIsActive,
         active: () => panelIsActive() ? { kind: "wallpaper-library" } : null,
         toggleExpanded: closePanel,
@@ -354,6 +372,7 @@ export default async function mount({ pluginId, projectId, setTheme, signal }) {
         if (descriptor.name === "settings.section") section = render;
         if (descriptor.name === "sidebar.right.pane.tab") panelRender = render;
         renderPanel();
+        renderSettings();
         return () => {
           if (descriptor.name === "settings.section") section = undefined;
           if (descriptor.name === "sidebar.right.pane.tab") panelRender = undefined;

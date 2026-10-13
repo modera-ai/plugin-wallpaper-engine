@@ -20,8 +20,15 @@
     "process.spawn",
     "network.fetch"
   ],
-  "extensions": ["window.overlay"],
+  "extensions": ["window.overlay", "settings"],
   "frontends": { "assets": { "root": "dist/ui", "entry": "index.html" } },
+  "settings": {
+    "title": "Wallpaper Engine",
+    "frontend": "assets",
+    "renderMode": "host-injection",
+    "width": "wide",
+    "locales": { "zh-CN": { "title": "壁纸引擎" } }
+  },
   "hostInjection": {
     "frontend": "assets",
     "script": "host.js",

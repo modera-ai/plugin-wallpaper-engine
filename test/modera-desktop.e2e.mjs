@@ -165,8 +165,9 @@ try {
   await page.locator(".we-rope").press("Enter");
   await expect(page.locator('.panel-region-right .host-injection-panel[data-host-injection-panel="modera.wallpaper-engine"]')).toBeVisible();
   await expect(page.locator(".we-repo-panel--open")).toHaveCount(0);
-  await page.locator(".host-injection-panel .we-qp__settings").click();
-  await expect(page.locator(".host-injection-panel .modera-we-settings-content")).toBeVisible();
+  await page.locator(".host-injection-panel .we-qp__settings").dispatchEvent("click");
+  await expect(page.locator('.plugin-settings-layer.active [data-plugin-settings-host="modera.wallpaper-engine"] .modera-we-settings-content')).toBeVisible();
+  await expect(page.getByRole("button", { name: "壁纸引擎", exact: true })).toBeVisible();
   for (const name of ["壁纸库", "外观", "播放", "系统", "扩展", "关于"])
     await expect(page.getByRole("tab", { name, exact: true })).toBeVisible();
   await page.screenshot({ path: join(screenshots, "settings.png") });
@@ -176,7 +177,7 @@ try {
   ).toBeVisible({ timeout: 30000 });
   // Use the real upstream picker to select the wallpaper.
   await page.getByText("Modera live web test", { exact: true }).first().click();
-  await page.locator(".modera-we-back").click();
+  await page.getByRole("button", { name: "主页", exact: true }).click();
   await expect(page.locator(".modera-we-settings-content")).toHaveCount(0);
   await page.locator(".we-rope").press("Enter");
   await expect(page.locator("body")).toHaveAttribute(
@@ -283,7 +284,7 @@ try {
       )
       .toBe(56);
     await page.locator(".we-rope").press("Enter");
-    await expect(page.locator('.panel-region-right .host-injection-panel[data-host-injection-panel="modera.wallpaper-engine"]')).toHaveCount(0);
+    await expect(page.locator('.panel-region-right .host-injection-panel[data-host-injection-panel="modera.wallpaper-engine"]')).not.toBeVisible();
   };
   await verifyGlassAndSidebar("light");
   await page.screenshot({ path: join(screenshots, "live-web.png") });
@@ -295,10 +296,10 @@ try {
   await verifyGlassAndSidebar("dark");
   await page.screenshot({ path: join(screenshots, "live-web-dark.png") });
   await page.locator(".we-rope").press("Enter");
-  await page.locator(".host-injection-panel .we-qp__settings").click();
+  await page.locator(".host-injection-panel .we-qp__settings").dispatchEvent("click");
   await page.getByRole("button", { name: "选择壁纸", exact: true }).click();
   await page.getByText("Modera scene test", { exact: true }).first().click();
-  await page.locator(".modera-we-back").click();
+  await page.getByRole("button", { name: "主页", exact: true }).click();
   await page.locator(".we-rope").press("Enter");
   await expect
     .poll(
@@ -361,8 +362,8 @@ try {
     projectId,
   );
   await page.locator(".we-rope").press("Enter");
-  await page.locator(".host-injection-panel .we-qp__settings").click();
-  await expect(page.locator(".modera-we-settings-content")).toBeVisible();
+  await page.locator(".host-injection-panel .we-qp__settings").dispatchEvent("click");
+  await expect(page.locator('.plugin-settings-layer.active [data-plugin-settings-host="modera.wallpaper-engine"] .modera-we-settings-content')).toBeVisible();
   await page
     .locator(".modera-we-settings-content input[type=file]")
     .first()
@@ -374,7 +375,7 @@ try {
   await expect(
     page.getByText("Modera image test", { exact: true }).first(),
   ).toBeVisible({ timeout: 15000 });
-  await page.locator(".modera-we-back").click();
+  await page.getByRole("button", { name: "主页", exact: true }).click();
   await page.locator(".we-rope").press("Enter");
   await expect(page.locator(".we-layer img.we-media")).toBeVisible();
   await expect
@@ -427,7 +428,7 @@ try {
     return result;
   });
   await page.locator(".we-rope").press("Enter");
-  await page.locator(".host-injection-panel .we-qp__settings").click();
+  await page.locator(".host-injection-panel .we-qp__settings").dispatchEvent("click");
   await page
     .locator(".modera-we-settings-content input[type=file]")
     .first()
@@ -461,7 +462,7 @@ try {
         .evaluate((video) => video.paused),
     )
     .toBe(false);
-  await page.locator(".modera-we-back").click();
+  await page.getByRole("button", { name: "主页", exact: true }).click();
   await page.locator(".we-rope").press("Enter");
   await page.screenshot({ path: join(screenshots, "video.png") });
   // Disable through the actual host preferences API: scripts, CSS and server must disappear.
