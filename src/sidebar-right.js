@@ -383,6 +383,11 @@ let openSettingsBusy = false;
  * 自动打开失手（超时分支）要顺手清掉请求：否则用户几分钟后自己开设置会被旧请求劫持。
  */
 function openSettingsSection(tabId) {
+  if (typeof moderaHost !== "undefined" && typeof moderaHost.openSettings === "function") {
+    if (tabId) setTransient("settingsTabRequest", String(tabId));
+    moderaHost.openSettings(tabId);
+    return;
+  }
   if (typeof document === "undefined" || openSettingsBusy) return;
   openSettingsBusy = true; // 重入锁：误点自己/连点不再递归（实测会递归自点 5 次）
   const release = () => { openSettingsBusy = false; };

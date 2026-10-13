@@ -39,6 +39,11 @@ export default async function mount({ pluginId, projectId, setTheme, signal }) {
     endpoint,
     fetch: fetchHost,
     signal,
+    openSettings() {
+      panelMode = "settings";
+      openPanel();
+      renderPanel();
+    },
     fontComponents: {
       markdown: "body[data-modera-wallpaper] .mu-markdown",
       codeBlock:
@@ -277,55 +282,62 @@ export default async function mount({ pluginId, projectId, setTheme, signal }) {
       for (const attr of attrs) node.removeAttribute(attr);
   });
 
-  const launcher = document.createElement("button");
-  launcher.type = "button";
-  launcher.className = "modera-we-launcher";
-  launcher.textContent = "壁纸引擎";
-  launcher.setAttribute("aria-haspopup", "dialog");
-  document.body.append(launcher);
-  cleanups.push(() => launcher.remove());
   let section;
-  let dialog;
-  let sectionRoot;
+  let panelRender;
+  let panelMode = "library";
+  let panelTarget;
+  let panelRoot;
   let upstream;
-  const closeSettings = () => {
-    upstream?.moderaCloseSettings();
-    sectionRoot?.unmount();
-    sectionRoot = null;
-    dialog?.remove();
-    dialog = null;
-    launcher.focus();
+  const panelId = "modera.wallpaper-engine";
+  const panelIsActive = () => Boolean(panelTarget?.closest(".panel-region-right:not([data-hidden])")
+    && !panelTarget.closest("[role=tabpanel]")?.hidden);
+  const openPanel = () => window.dispatchEvent(new CustomEvent("modera:host-panel-open", {
+    detail: { id: panelId, title: "壁纸" },
+  }));
+  const closePanel = () => window.dispatchEvent(new CustomEvent("modera:host-panel-close", {
+    detail: { id: panelId },
+  }));
+  const renderPanel = () => {
+    if (!panelRoot) return;
+    if (panelMode === "settings" && section) {
+      panelRoot.render(React.createElement("div", { className: "modera-we-settings-content" },
+        React.createElement("button", {
+          type: "button", className: "modera-we-back",
+          onClick: () => { upstream?.moderaCloseSettings(); panelMode = "library"; renderPanel(); },
+        }, "← 壁纸库"), section()));
+    } else if (panelRender) panelRoot.render(panelRender());
   };
-  launcher.addEventListener("click", () => {
-    if (!section || dialog) return;
-    dialog = document.createElement("dialog");
-    dialog.className = "modera-we-settings";
-    dialog.setAttribute("aria-label", "壁纸引擎设置");
-    const close = document.createElement("button");
-    close.type = "button";
-    close.className = "modera-we-close";
-    close.textContent = "关闭";
-    close.addEventListener("click", closeSettings);
-    const content = document.createElement("div");
-    content.className = "modera-we-settings-content";
-    dialog.append(close, content);
-    document.body.append(dialog);
-    dialog.addEventListener("cancel", (event) => {
-      event.preventDefault();
-      closeSettings();
-    });
-    sectionRoot = createRoot(content);
-    sectionRoot.render(section());
-    dialog.showModal();
-    close.focus();
+  const syncPanelTarget = () => {
+    const next = document.querySelector('[data-host-injection-panel="modera.wallpaper-engine"]');
+    if (next === panelTarget) return;
+    if (panelRoot) panelRoot.unmount();
+    panelTarget = next;
+    panelRoot = next ? createRoot(next) : null;
+    renderPanel();
+  };
+  const panelObserver = new MutationObserver(syncPanelTarget);
+  panelObserver.observe(document.getElementById("root"), { childList: true, subtree: true });
+  syncPanelTarget();
+  cleanups.push(() => {
+    panelObserver.disconnect();
+    upstream?.moderaCloseSettings();
+    panelRoot?.unmount();
+    panelRoot = null;
+    closePanel();
   });
-  cleanups.push(closeSettings);
   const ctx = {
     effect(callback) {
       const cleanup = callback();
       if (typeof cleanup === "function") cleanups.push(cleanup);
     },
     get(name) {
+      if (name === "sidebarRightTabs") return { register: () => () => {} };
+      if (name === "sidebarRight") return {
+        openTab: () => { panelMode = "library"; openPanel(); renderPanel(); },
+        isExpanded: panelIsActive,
+        active: () => panelIsActive() ? { kind: "wallpaper-library" } : null,
+        toggleExpanded: closePanel,
+      };
       return name === "theme" ? theme : name === "locale" ? locale : undefined;
     },
     on(name, callback) {
@@ -336,10 +348,16 @@ export default async function mount({ pluginId, projectId, setTheme, signal }) {
     },
     slots: {
       inject(name, callback) {
-        if (name === "settings.section") callback();
+        if (name === "settings.section" || name === "sidebar.right.pane.tab") return callback();
       },
-      register(_descriptor, render) {
-        section = render;
+      register(descriptor, render) {
+        if (descriptor.name === "settings.section") section = render;
+        if (descriptor.name === "sidebar.right.pane.tab") panelRender = render;
+        renderPanel();
+        return () => {
+          if (descriptor.name === "settings.section") section = undefined;
+          if (descriptor.name === "sidebar.right.pane.tab") panelRender = undefined;
+        };
       },
     },
   };
@@ -361,12 +379,7 @@ export default async function mount({ pluginId, projectId, setTheme, signal }) {
     upstream = createUpstream(moderaHost, React, {
       createRoot,
       flushSync,
-      createPortal: (node, container, key) =>
-        createPortal(
-          node,
-          dialog && container === document.body ? dialog : container,
-          key,
-        ),
+      createPortal,
     });
     const syncFontGate = () =>
       document.body.toggleAttribute(
