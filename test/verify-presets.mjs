@@ -1513,7 +1513,7 @@ section('④b 行为判据：删除令牌链 + broken 行禁用与可删 + 勾�
     //   的 data URL，无法内联）；下面紧跟着一条判据钉住"标签表的键集 == 真源值域"，两边不许打架。
     ROPE_FORM_VALUES: schema.ROPE_FORM_VALUES,
     ROPE_FORMS: Object.fromEntries(Object.entries({
-      whale: 'Deepseek_Pro', phoebe: '菲比啾比',
+      modera: 'Modera', whale: 'Deepseek_Pro', phoebe: '菲比啾比',
       claude: 'Claude', deepseek: 'DeepSeek', gemini: 'Gemini', gpt: 'GPT',
       glm: 'GLM', grok: 'Grok', kimi: 'Kimi', qwen: 'Qwen',
     }).map(([k, label]) => [k, { label }])),
@@ -1524,7 +1524,7 @@ section('④b 行为判据：删除令牌链 + broken 行禁用与可删 + 勾�
   const { renderGlassPresetsBlock } = makeBlock(...Object.keys(gpStub).map((k) => gpStub[k]));
   // 台架前提核对（不是对实现的判据）：标签表的键集必须恰好等于真源值域 —— 少一只 ⇒ 判据读不到那只键
   //   （静默少测），多一只 ⇒ 造出不存在的形态。真源改了这里必须跟着改（就是这条判据在提醒）。
-  check('台架前提：立绘标签表的键集 == settings-schema 的 ROPE_FORM_VALUES（10 只，不许手抄漂移）',
+  check('台架前提：立绘标签表的键集 == settings-schema 的 ROPE_FORM_VALUES（11 只，不许手抄漂移）',
     Object.keys(gpStub.ROPE_FORMS).join(',') === schema.ROPE_FORM_VALUES.join(','),
     Object.keys(gpStub.ROPE_FORMS).length + ' 只 vs 真源 ' + schema.ROPE_FORM_VALUES.length + ' 只');
   const PRESETS = [

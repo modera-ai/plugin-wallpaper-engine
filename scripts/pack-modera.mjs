@@ -37,7 +37,7 @@ const bytes = gzipSync(
   { level: 9 },
 );
 // Validate the exact deliverable with the same decoder used by the desktop installer.
-decodePackage(bytes);
+const decoded = decodePackage(bytes);
 const sha256 = createHash("sha256").update(bytes).digest("hex");
 const output = join(
   root,
@@ -46,5 +46,24 @@ const output = join(
 );
 await mkdir(dirname(output), { recursive: true });
 await writeFile(output, bytes);
+const repository = "modera-ai/plugin-wallpaper-engine";
+const tag = `v${manifest.version}`;
+const filename = output.split(/[\\/]/).at(-1);
+const marketRoot = join(root, "release", "plugin-market");
+await mkdir(marketRoot, { recursive: true });
+await writeFile(join(marketRoot, filename), bytes);
+await writeFile(join(marketRoot, "plugin-release.json"), JSON.stringify({
+  format: 1,
+  repository,
+  tag,
+  entries: [{
+    manifest: decoded.manifest,
+    url: `https://github.com/${repository}/releases/download/${tag}/${filename}`,
+    sha256,
+    bytes: bytes.length,
+    ...decoded.compatibility,
+    notes: `独立插件版本 ${manifest.version}`,
+  }],
+}, null, 2) + "\n");
 console.log(output);
 console.log(`SHA-256: ${sha256}`);

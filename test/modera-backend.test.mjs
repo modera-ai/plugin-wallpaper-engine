@@ -33,6 +33,12 @@ test("original settings and upload routes survive backend restart and preserve R
   try {
     assert.equal((await request("/settings")).status, 200);
     assert.equal((await request("/inventory")).status, 200);
+    const mascotSource = await readFile(join(resourcePath, "dist/upstream/mascot-art/modera-rope.png"));
+    const mascotResponse = await request("/mascot-art/modera-rope.png");
+    assert.equal(mascotResponse.status, 200);
+    assert.deepEqual(Buffer.from(await mascotResponse.arrayBuffer()), mascotSource);
+    assert.equal((await request("/mascot-art/unknown.png")).status, 404);
+    assert.ok((await readFile(join(resourcePath, "dist/ui/host.js"))).length < 4 * 1024 * 1024);
     const put = await request("/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

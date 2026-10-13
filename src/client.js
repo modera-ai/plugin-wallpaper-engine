@@ -5096,6 +5096,7 @@ const ROPE_IMG_QWEN = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAATMAAAGACAY
 // scale). The box aspect mirrors the image so object-fit: contain fills it with
 // no letterboxing; the drag/clamp maths read the real rendered box at runtime.
 const ROPE_FORMS = {
+  modera: { get label() { return weT("Modera"); }, img: apiUrl("/mascot-art/modera-rope.png"), w: 80, h: 88 },
   // ── 两只内置：用户自绘（`maid` 已于 2026-10-13 从出厂形态除名 —— 那只图搬进「作者自用」
   //    出厂预设当内嵌的自定义立绘）。⚠️ `phoebe` 在 2026-10-11 换了**竖版**立绘（源
   //    902×1223），显示盒因此从 1:1 的 64×64 变成 64×87 —— 与原来那只方图不是同一个构图。──

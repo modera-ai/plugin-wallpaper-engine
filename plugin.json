@@ -2,7 +2,7 @@
   "apiVersion": 1,
   "id": "modera.wallpaper-engine",
   "name": "Wallpaper Engine",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "The original DSH Wallpaper Engine plugin adapted to Modera: local wallpapers, live scenes, liquid glass and appearance controls.",
   "author": "elysia395 / Modera adaptation",
   "category": "appearance",

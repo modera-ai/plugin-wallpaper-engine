@@ -1718,8 +1718,7 @@ setTimeout(async () => {
     assert.ok(ringEnum.length >= 3 && ringLabels.length >= 3, '（判据前置）枚举与形态表都要数得到');
     assert.equal(ringLabels.length, ringEnum.length,
       '形态表条目数（' + ringLabels.length + '）必须等于 ROPE_FORM_VALUES 项数（' + ringEnum.length + '）');
-    // 默认形态也**从真源推**（`DEFAULTS.ropeForm`）：2026-10-13「小女仆」除名、默认改 `deepseek`
-    //   之后，"默认 = 枚举第一只"这条假设不再成立（第一只现在是「Deepseek_Pro」）⇒ 写死会假红。
+    // 默认形态从真源推（`DEFAULTS.ropeForm`），避免增加形态或调整默认值时写死名称。
     //   注意锚点：注释里也会出现 `ropeForm: "maid"` 这种字样 ⇒ 只认 `DEFAULTS` 那一行（缩进两格 + 行尾逗号）。
     const ringDefaultForm = ((ringSchemaSrc.match(/^  ropeForm: "([a-z]+)",$/m) || [])[1] || '');
     const defaultLabel = ringLabels[ringEnum.indexOf(ringDefaultForm)] || '';
@@ -2235,14 +2234,14 @@ setTimeout(async () => {
       // ropeScale 缩放"，与有几只内置无关。数量对齐形态表（加了图忘了渲染就会红）。
       assert.equal(artsAtScale.length, ringLabels.length,
         '1.5 倍下形态卡片立绘应有 ' + ringLabels.length + ' 个（= 内置形态数；卡片不消失）');
-      // 前两只（Deepseek_Pro / 菲比啾比）与第一只「模型娘」的固定基础尺寸逐条钉住 —— 顺序由枚举决定。
-      //   ⚠️ 2026-10-13「小女仆」从出厂形态除名（那只图改由「作者自用」预设携带）⇒ 这里从
-      //      "maid / whale / phoebe" 改成 "whale / phoebe / 第一只模型娘"，索引与数字同步前移。
-      assert.equal(artsAtScale[0] && artsAtScale[0].props.style?.height, '96px', 'Deepseek_Pro卡片高度固定 96px（不随滑块缩放）');
-      assert.equal(artsAtScale[1] && artsAtScale[1].props.style?.height, '87px', '菲比啾比卡片高度固定 87px（不随滑块缩放）');
+      // Modera、Deepseek_Pro、菲比啾比的固定基础尺寸逐条钉住 —— 顺序由枚举决定。
+      //   「小女仆」仍由「作者自用」预设携带，不占内置形态位置。
+      assert.equal(artsAtScale[0] && artsAtScale[0].props.style?.height, '88px', 'Modera卡片高度固定 88px（不随滑块缩放）');
+      assert.equal(artsAtScale[1] && artsAtScale[1].props.style?.height, '96px', 'Deepseek_Pro卡片高度固定 96px（不随滑块缩放）');
+      assert.equal(artsAtScale[2] && artsAtScale[2].props.style?.height, '87px', '菲比啾比卡片高度固定 87px（不随滑块缩放）');
       // 八只「模型娘」也必须是**固定**尺寸、且各自等于形态表里写的那一对数（不是统一 64×64，
       // 也不是被 ropeScale 乘过）。这条同时钉住"8 张比例各不同 ⇒ 盒高逐个算"这个决定。
-      for (let i = 2; i < artsAtScale.length; i++) {
+      for (let i = 3; i < artsAtScale.length; i++) {
         const w = artsAtScale[i].props.style?.width, h = artsAtScale[i].props.style?.height;
         assert.ok(/^\d+px$/.test(String(w)) && /^\d+px$/.test(String(h)),
           '第 ' + (i + 1) + ' 只（模型娘）卡片必须有固定 px 盒，实测 ' + w + ' / ' + h);
