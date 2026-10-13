@@ -54,5 +54,34 @@
       "name": "动态壁纸引擎",
       "description": "在原 DSH 插件上适配：本地壁纸、实时场景、液态玻璃、字体及外观设置。"
     }
+  },
+  "theme": {
+    "light": {
+      "accent": "#ef6624",
+      "page": "#ffffff",
+      "card": "#ffffff",
+      "control": "#fbfcfe",
+      "ink": "#191b20",
+      "muted": "#777d87",
+      "line": "#e5e6e9",
+      "soft": "#f3f4f6",
+      "sidebar": "#f3f4f6"
+    },
+    "dark": {
+      "accent": "#ef6624",
+      "page": "#17191d",
+      "card": "#20232a",
+      "control": "#252830",
+      "ink": "#ecedf0",
+      "muted": "#9297a0",
+      "line": "#383b43",
+      "soft": "#26282d",
+      "sidebar": "#20232a"
+    },
+    "components": {
+      "radius": 10,
+      "borderWidth": 1,
+      "surface": "glass"
+    }
   }
 }

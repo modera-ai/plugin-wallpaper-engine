@@ -20,7 +20,8 @@
     "typecheck": "tsc --noEmit",
     "test:upstream": "node test/verify-api-client.mjs && node test/verify-mp4-vfs.mjs && node test/verify-body-caps.mjs && node test/verify-picker-model.mjs && node test/verify-scene.mjs && node test/verify-json-response.mjs",
     "test:integration": "node test/modera-desktop.e2e.mjs",
-    "dev": "node tools/modera-dev.mjs"
+    "dev": "node tools/modera-dev.mjs",
+    "test:theme": "node test/modera-desktop.e2e.mjs --theme-only"
   },
   "devDependencies": {
     "@modera/contracts": "file:vendor/modera-contracts-0.1.0.tgz",

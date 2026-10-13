@@ -42,6 +42,7 @@ body[data-modera-wallpaper][data-we-wallpaper]
   :is(
     #root,
     .desktop-appearance,
+    .application-layout,
     .shell,
     .mu-chat-app,
     .workspace,
@@ -74,6 +75,7 @@ body[data-modera-wallpaper][data-we-glass-page]
     .desktop-settings-ui,
     .settings-workspace,
     .mu-settings-workspace,
+    .mu-settings-workspace-content,
     .settings-nav,
     .settings-content
   ) {
@@ -287,4 +289,63 @@ body[data-modera-wallpaper][data-we-glass-floaters]
   body[data-modera-wallpaper] .we-rope {
     animation: none !important;
   }
+}
+
+/* Shared host panes remain glass while the wallpaper theme is selected. */
+body[data-modera-wallpaper][data-we-glass-page]
+  :is(.panel-content, .host-injection-panel, .we-qp, .plugin-settings-layer, .plugin-frontend-surface, .plugins-workbench, .plugin-settings-view) {
+  background: transparent !important;
+  background-image: none !important;
+}
+body[data-modera-wallpaper][data-we-glass-page] .plugins-workbench
+  :is(.plugin-workbench-header, .extension-list, .mu-card, .mu-catalog-card, .market-pending, .extension-detail, .mu-settings-panel-body) {
+  background: var(--modera-we-pane) !important;
+  background-image: none !important;
+  border-color: var(--dsw-alias-border-l1) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(var(--we-blur, 20px)) saturate(var(--we-saturate, 1.3));
+}
+body[data-modera-wallpaper][data-we-glass-page] .plugins-workbench
+  :is(.mu-manage-item, .mu-tabs-indicator) {
+  background: var(--modera-we-text-pane) !important;
+  box-shadow: none !important;
+}
+body[data-modera-wallpaper][data-we-glass-page] .plugins-workbench
+  :is(.mu-settings-page, .extension-manager, .plugin-market) {
+  background: transparent !important;
+  background-image: none !important;
+}
+body[data-modera-wallpaper][data-we-glass-page] .plugins-workbench
+  :is(input, select, .mu-select-trigger, .mu-tabs-trigger[aria-selected="true"], .mu-collection-search) {
+  background: var(--modera-we-text-pane) !important;
+  border-color: var(--dsw-alias-border-l1) !important;
+}
+body[data-modera-wallpaper][data-we-glass-page]
+  :is(.mu-chat-topbar button, .panel-tab, .mu-panel-dock-tab, .mu-panel-dock-toolbar button) {
+  background: var(--modera-we-text-pane) !important;
+  border-color: var(--dsw-alias-border-l1) !important;
+  color: var(--dsw-alias-label-primary);
+}
+body[data-modera-wallpaper][data-we-glass-page] .mu-panel-dock-tab.is-active,
+body[data-modera-wallpaper][data-we-glass-page] .settings-nav .mu-animated-sidebar-active {
+  background: color-mix(in srgb, var(--we-accent, var(--mu-accent)) 18%, transparent) !important;
+}
+body[data-modera-wallpaper][data-we-glass-page] .desktop-settings-ui .mu-settings-panel {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+body[data-modera-wallpaper][data-we-glass-page] .desktop-settings-ui
+  :is(.mu-settings-panel-body, .api-profile-list, .mu-card:not(.mu-settings-workspace)) {
+  background: var(--modera-we-pane) !important;
+  border-color: var(--dsw-alias-border-l1) !important;
+  backdrop-filter: blur(var(--we-blur, 20px)) saturate(var(--we-saturate, 1.3));
+}
+body[data-modera-wallpaper][data-we-glass-page] .desktop-settings-ui
+  :is(input, textarea, select, .mu-select-trigger, .mu-color-picker-trigger, .mu-button) {
+  background-color: var(--modera-we-text-pane) !important;
+  border-color: var(--dsw-alias-border-l1) !important;
+}
+body[data-modera-wallpaper][data-we-glass-floaters] .desktop-settings-ui .mu-select-content {
+  background: var(--modera-we-popup-pane) !important;
+  backdrop-filter: blur(var(--we-blur, 20px));
 }

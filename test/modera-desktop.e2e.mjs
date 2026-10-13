@@ -36,9 +36,16 @@ if (packageArg >= 0) {
     await cp(join(root, name), join(pluginRoot, name), { recursive: true });
 }
 const config = join(data, "default.yml");
+if (process.argv.includes("--theme-only")) {
+  const terminalRoot = resolve(root, "../plugin-terminal");
+  const target = join(data, "plugins/plugin-terminal");
+  await mkdir(target, { recursive: true });
+  for (const name of ["dist", "plugin.json"])
+    await cp(join(terminalRoot, name), join(target, name), { recursive: true });
+}
 await writeFile(
   config,
-  "version: 1\nprofile: default\nprofiles:\n  default:\n    plugins:\n      modera.wallpaper-engine: { enabled: true }\n",
+  "version: 1\nprofile: default\nprofiles:\n  default:\n    plugins:\n      modera.wallpaper-engine: { enabled: true }\n" + (process.argv.includes("--theme-only") ? "      modera.terminal: { enabled: true }\n" : ""),
 );
 const steam = join(data, "steam");
 const web = join(steam, "steamapps/workshop/content/431960/990101");
@@ -120,6 +127,22 @@ const app = await electron.launch({
 });
 try {
   const page = await app.firstWindow();
+  await expect.poll(async () => page.evaluate(async () => (await window.modera.plugins.settings(null)).some(item => item.id === "modera.wallpaper-engine")), { timeout: 30000 }).toBe(true);
+  await expect(page.locator("body")).not.toHaveAttribute("data-modera-wallpaper", "on");
+  await expect(page.locator('style[data-host-injection="modera.wallpaper-engine"]')).toHaveCount(0);
+  await page.getByRole("button", { name: "设置", exact: true }).click();
+  await page.getByRole("button", { name: "壁纸引擎", exact: true }).click();
+  await expect(page.getByText("选择此插件主题后才能使用外观设置。", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "选择主题", exact: true }).click();
+  await page.getByRole("combobox", { name: "显示模式", exact: true }).click();
+  await page.getByRole("option", { name: "浅色", exact: true }).click();
+  const nativeBackgrounds = await page.evaluate(() => [".desktop-appearance", ".application-layout", ".app-sidebar", ".shell"].map(selector => getComputedStyle(document.querySelector(selector)).backgroundColor));
+  for (const label of ["浅色主题", "深色主题"]) {
+    await page.getByRole("combobox", { name: label, exact: true }).click();
+    await page.getByRole("option", { name: "Wallpaper Engine", exact: true }).click();
+  }
+  await page.getByRole("button", { name: "主页", exact: true }).click();
+
   const errors = [];
   const cspErrors = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -185,6 +208,96 @@ try {
     /.+/,
     { timeout: 20000 },
   );
+  if (process.argv.includes("--theme-only")) {
+    for (const selector of [".desktop-appearance", ".application-layout", ".shell", ".workspace", ".app-sidebar"])
+      await expect.poll(() => page.locator(selector).first().evaluate(node => getComputedStyle(node).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
+    await expect.poll(() => page.locator(".we-live-iframe").evaluate(node => getComputedStyle(node).opacity), { timeout: 30000 }).toBe("1");
+    await page.screenshot({ path: join(screenshots, "theme-light-wallpaper.png") });
+
+    const themeSettings = async () => {
+      await page.getByRole("button", { name: "设置", exact: true }).click();
+      await page.getByRole("button", { name: "主题设置", exact: true }).click();
+    };
+    const selectTheme = async (mode, value) => {
+      await page.getByRole("combobox", { name: mode === "dark" ? "深色主题" : "浅色主题", exact: true }).click();
+      await page.getByRole("option", { name: value, exact: true }).click();
+    };
+    const clean = async () => {
+      await expect(page.locator("body")).not.toHaveAttribute("data-modera-wallpaper", "on");
+      await expect(page.locator('.we-layer, #dsh-wallpaper-engine-rope-dock, style[data-host-injection="modera.wallpaper-engine"]')).toHaveCount(0);
+      await expect(page.locator("body")).not.toHaveAttribute("data-modera-we-fonts", "");
+    };
+    const wallpaper = await page.locator("body").getAttribute("data-we-wallpaper");
+    await expect.poll(() => page.locator(".host-injection-panel").first().evaluate(node => getComputedStyle(node).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
+    await themeSettings();
+    await page.getByRole("button", { name: "终端设置", exact: true }).click();
+    await expect.poll(() => app.evaluate(async ({ BrowserWindow }) => {
+      for (const win of BrowserWindow.getAllWindows()) for (const view of win.contentView.children) {
+        if (!view.webContents || !view.getVisible()) continue;
+        const result = await view.webContents.executeJavaScript(`document.querySelector('.terminal-settings-ui') ? JSON.stringify({body:getComputedStyle(document.body).backgroundColor, scope:getComputedStyle(document.querySelector('.mu-scope')).backgroundColor, style:document.getElementById('__modera-host-theme')?.textContent}) : null`);
+        if (result) return result;
+      }
+      return null;
+    }), { timeout: 30000 }).toContain('"body":"rgba(0, 0, 0, 0)"');
+    await expect.poll(() => page.locator('.plugin-settings-layer.active').evaluate(node => Number(getComputedStyle(node, '::before').opacity))).toBe(0);
+    await expect.poll(() => page.locator('.plugin-settings-layer.active .plugin-frontend-surface').evaluate(node => getComputedStyle(node).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
+    const nativeImage = await app.evaluate(async ({ BrowserWindow }) => { for(const win of BrowserWindow.getAllWindows())for(const view of win.contentView.children)if(view.webContents && view.getVisible()){ const match=await view.webContents.executeJavaScript("!!document.querySelector('.terminal-settings-ui')"); if(match){const image=await view.webContents.capturePage();return {png:image.toPNG().toString('base64'),alpha:image.toBitmap()[3],window:(await win.capturePage()).toPNG().toString('base64')};}} });
+    console.log('Terminal native pixel alpha', nativeImage.alpha);
+    assert.ok(nativeImage.alpha < 128, "Native terminal settings compositor must retain transparency");
+    await writeFile(join(screenshots, "theme-terminal-native.png"), Buffer.from(nativeImage.png, "base64"));
+    await writeFile(join(screenshots, "theme-terminal-composite.png"), Buffer.from(nativeImage.window, "base64"));
+    await page.screenshot({ path: join(screenshots, "theme-terminal-wallpaper.png") });
+    await page.getByRole("button", { name: "主题设置", exact: true }).click();
+    await page.getByRole("button", { name: "插件", exact: true }).click();
+    await expect(page.locator('.extension-list')).toBeVisible();
+    await expect.poll(() => page.locator('.plugins-workbench').evaluate(node => getComputedStyle(node).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
+    for (const selector of ['.plugin-workbench-header', '.extension-list', '.extension-list .mu-manage-item', '.plugin-workbench-header .mu-tabs-indicator']) {
+      await expect.poll(() => page.locator(selector).first().evaluate(node => {const canvas=document.createElement('canvas');canvas.width=canvas.height=1;const ctx=canvas.getContext('2d');ctx.fillStyle=getComputedStyle(node).backgroundColor;ctx.fillRect(0,0,1,1);return ctx.getImageData(0,0,1,1).data[3];})).toBeLessThan(128);
+    }
+    await page.screenshot({path:join(screenshots,'theme-plugin-manager-wallpaper.png')});
+    await themeSettings();
+    const pluginLayerBackground = await page.evaluate(() => {
+      const layer = document.createElement("div");
+      layer.className = "plugin-settings-layer active";
+      document.querySelector(".settings-content").append(layer);
+      const background = getComputedStyle(layer).backgroundColor;
+      layer.remove();
+      return background;
+    });
+    assert.equal(pluginLayerBackground, "rgba(0, 0, 0, 0)", "Host plugin settings layer must not obscure transparent native pages");
+    for (const selector of [".mu-settings-panel-body", ".settings-nav .mu-animated-sidebar-active", ".mu-select-trigger"]) {
+      await expect.poll(() => page.locator(selector).first().evaluate(node => {
+        const canvas = document.createElement("canvas"); canvas.width = canvas.height = 1;
+        const ctx = canvas.getContext("2d"); ctx.fillStyle = getComputedStyle(node).backgroundColor; ctx.fillRect(0, 0, 1, 1);
+        return ctx.getImageData(0, 0, 1, 1).data[3];
+      })).toBeLessThan(180);
+    }
+    await expect.poll(() => page.locator(".mu-settings-workspace-content").evaluate(node => {
+      const canvas = document.createElement("canvas"); canvas.width = canvas.height = 1;
+      const ctx = canvas.getContext("2d"); ctx.fillStyle = getComputedStyle(node).backgroundColor; ctx.fillRect(0, 0, 1, 1);
+      return ctx.getImageData(0, 0, 1, 1).data[3];
+    })).toBeLessThan(128);
+
+    await page.getByRole("combobox", { name: "显示模式", exact: true }).click();
+    await page.getByRole("option", { name: "深色", exact: true }).click();
+    await expect(page.locator("body")).toHaveAttribute("data-modera-wallpaper", "on");
+    await expect.poll(() => page.locator(".application-layout").evaluate(node => getComputedStyle(node).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
+    await page.screenshot({ path: join(screenshots, "theme-dark-wallpaper.png") });
+    await selectTheme("dark", "Modera");
+    await clean();
+    await selectTheme("dark", "Wallpaper Engine");
+    await expect(page.locator("body")).toHaveAttribute("data-modera-wallpaper", "on");
+    await expect(page.locator("body")).toHaveAttribute("data-we-wallpaper", wallpaper);
+    await page.getByRole("combobox", { name: "显示模式", exact: true }).click();
+    await page.getByRole("option", { name: "浅色", exact: true }).click();
+    await selectTheme("light", "Modera");
+    await clean();
+    await expect.poll(() => page.evaluate(() => [".desktop-appearance", ".application-layout", ".app-sidebar", ".shell"].map(selector => getComputedStyle(document.querySelector(selector)).backgroundColor))).toEqual(nativeBackgrounds);
+    await page.getByRole("button", { name: "壁纸引擎", exact: true }).click();
+    await expect(page.getByText("选择此插件主题后才能使用外观设置。", { exact: true })).toBeVisible();
+    assert.deepEqual(errors, []);
+    console.log("PASS: enabled wallpaper stays inactive until selected, light/dark selection, native color restoration, cleanup and preserved wallpaper.");
+  } else {
   await expect
     .poll(
       () =>
@@ -290,7 +403,8 @@ try {
   await page.screenshot({ path: join(screenshots, "live-web.png") });
   await page.getByRole("button", { name: "设置", exact: true }).click();
   await page.getByRole("button", { name: "主题设置", exact: true }).click();
-  await page.getByRole("tab", { name: "深色", exact: true }).click();
+  await page.getByRole("combobox", { name: "显示模式", exact: true }).click();
+  await page.getByRole("option", { name: "深色", exact: true }).click();
   await expect(page.locator("body")).toHaveAttribute("data-ds-dark-theme", "");
   await page.getByRole("button", { name: "主页", exact: true }).click();
   await verifyGlassAndSidebar("dark");
@@ -335,7 +449,8 @@ try {
   await page.screenshot({ path: join(screenshots, "scene.png") });
   await page.getByRole("button", { name: "设置", exact: true }).click();
   await page.getByRole("button", { name: "主题设置", exact: true }).click();
-  await page.getByRole("tab", { name: "浅色", exact: true }).click();
+  await page.getByRole("combobox", { name: "显示模式", exact: true }).click();
+  await page.getByRole("option", { name: "浅色", exact: true }).click();
   await page.getByRole("button", { name: "主页", exact: true }).click();
   const before = await page.evaluate(() => {
     const desktop = document.querySelector(".desktop-appearance");
@@ -465,6 +580,20 @@ try {
   await page.getByRole("button", { name: "主页", exact: true }).click();
   await page.locator(".we-rope").press("Enter");
   await page.screenshot({ path: join(screenshots, "video.png") });
+
+  // Selecting a different theme cleans up the active wallpaper without disabling the plugin.
+  await page.getByRole("button", { name: "设置", exact: true }).click();
+  await page.getByRole("button", { name: "主题设置", exact: true }).click();
+  const activeMode = await page.locator("html").getAttribute("data-theme");
+  await page.getByRole("combobox", { name: activeMode === "dark" ? "深色主题" : "浅色主题", exact: true }).click();
+  await page.getByRole("option", { name: "Modera", exact: true }).click();
+  await expect(page.locator("body")).not.toHaveAttribute("data-modera-wallpaper", "on");
+  await expect(page.locator('.we-layer, #dsh-wallpaper-engine-rope-dock, style[data-host-injection="modera.wallpaper-engine"]')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => [".desktop-appearance", ".application-layout", ".app-sidebar", ".shell"].map(selector => getComputedStyle(document.querySelector(selector)).backgroundColor))).toEqual(nativeBackgrounds);
+  await page.getByRole("combobox", { name: activeMode === "dark" ? "深色主题" : "浅色主题", exact: true }).click();
+  await page.getByRole("option", { name: "Wallpaper Engine", exact: true }).click();
+  await expect(page.locator("body")).toHaveAttribute("data-modera-wallpaper", "on");
+  await page.getByRole("button", { name: "主页", exact: true }).click();
   // Disable through the actual host preferences API: scripts, CSS and server must disappear.
   await page.evaluate(async (projectId) => {
     const result = await window.modera.plugins.prepareEnable(
@@ -495,8 +624,11 @@ try {
     "PASS: original six-tab UI, rope dock, live sandboxed web wallpaper, scene rendering/capture, theme changes, image/MP4 upload, video playback/pause, restart persistence and disable cleanup",
   );
   console.log("Screenshots:", screenshots);
+  }
 } catch (error) {
+  console.log("Native pages:", await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().flatMap(win => win.contentView.children.map(view => ({ url: view.webContents?.getURL(), visible: view.getVisible() })))));
   const page = await app.firstWindow();
+  console.log(JSON.stringify(await page.evaluate(() => window.modera.plugins.list(null)), null, 2));
   console.log((await page.locator("body").innerText()).slice(-5000));
   await page.screenshot({ path: join(screenshots, "failure.png") });
   throw error;
